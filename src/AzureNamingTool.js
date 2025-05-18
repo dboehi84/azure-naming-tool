@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 
 const azureRegions = {
@@ -125,12 +124,45 @@ export default function AzureNamingTool() {
   const [region, setRegion] = useState('westeurope');
   const [type, setType] = useState('vm');
   const [desc, setDesc] = useState('web-01');
+  const [project, setProject] = useState('MyProject');
+  const [resources, setResources] = useState([]);
 
   const resourceName = `${company}-${env}-${region}-${type}-${desc}`;
+
+  const handleAddResource = () => {
+    setResources([...resources, resourceName]);
+  };
+
+  const handleExport = () => {
+    const now = new Date();
+    const timestamp = now.toLocaleString();
+    const username = navigator.userAgent; // optional: als Platzhalter für Benutzerkennung
+
+    const content = `Projekt: ${project}\nDatum: ${timestamp}\nErstellt von: ${username}\n\n` +
+      resources.map((r, i) => `#${i + 1}: ${r}`).join('\n');
+
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `${project}_resources.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   return (
     <div className="max-w-xl mx-auto mt-10 p-6 rounded-2xl shadow bg-gray-50">
       <h1 className="text-xl font-bold mb-4">Azure Naming Tool</h1>
+
+      <label className="block mb-2">
+        Projektname:
+        <input
+          type="text"
+          value={project}
+          onChange={(e) => setProject(e.target.value)}
+          className="mt-1 block w-full border rounded-md p-2"
+        />
+      </label>
 
       <label className="block">
         Unternehmen/Kürzel:
@@ -144,6 +176,9 @@ export default function AzureNamingTool() {
 
       <label className="block mt-4">
         Umgebung:
+        <span className="text-xs text-gray-500 ml-2">
+          (prod = Produktiv, dev = Entwicklung, test = Test, qa = Qualitätssicherung)
+        </span>
         <select
           value={env}
           onChange={(e) => setEnv(e.target.value)}
@@ -164,9 +199,7 @@ export default function AzureNamingTool() {
           className="mt-1 block w-full border rounded-md p-2"
         >
           {Object.entries(azureRegions).map(([code, label]) => (
-            <option key={code} value={code}>
-              {label}
-            </option>
+            <option key={code} value={code}>{label}</option>
           ))}
         </select>
       </label>
@@ -179,9 +212,7 @@ export default function AzureNamingTool() {
           className="mt-1 block w-full border rounded-md p-2"
         >
           {Object.entries(azureResourceTypes).map(([name, abbreviation]) => (
-            <option key={abbreviation} value={abbreviation}>
-              {name}
-            </option>
+            <option key={abbreviation} value={abbreviation}>{name}</option>
           ))}
         </select>
       </label>
@@ -201,12 +232,36 @@ export default function AzureNamingTool() {
         <div className="mt-2 font-mono text-lg">{resourceName}</div>
       </div>
 
-      <button
-        className="mt-4 bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
-        onClick={() => navigator.clipboard.writeText(resourceName)}
-      >
-        Name Kopieren
-      </button>
+      <div className="mt-4 flex gap-2">
+        <button
+          className="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600"
+          onClick={handleAddResource}
+        >
+          Ressource hinzufügen
+        </button>
+        <button
+          className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
+          onClick={() => navigator.clipboard.writeText(resourceName)}
+        >
+          Name kopieren
+        </button>
+        <button
+          className="bg-gray-700 text-white py-2 px-4 rounded hover:bg-gray-800"
+          onClick={handleExport}
+        >
+          Exportieren
+        </button>
+      </div>
+
+      <div className="mt-6">
+        <h2 className="font-semibold mb-2">Projektressourcen</h2>
+        <ul className="list-disc list-inside text-sm text-gray-800">
+          {resources.map((res, idx) => (
+            <li key={idx}>{res}</li>
+          ))}
+        </ul>
+      </div>
+
       <div className="mt-10 bg-white p-6 rounded-xl shadow border">
         <h2 className="text-lg font-semibold mb-2">Namenskonzept</h2>
         <p className="text-sm text-gray-700">
@@ -227,6 +282,5 @@ export default function AzureNamingTool() {
         </p>
       </div>
     </div>
-    
   );
 }
