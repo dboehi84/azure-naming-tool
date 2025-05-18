@@ -120,26 +120,27 @@ const azureResourceTypes = {
 
 export default function AzureNamingTool() {
   const [company, setCompany] = useState('contoso');
-  const [env, setEnv] = useState('dev');
+  const [env, setEnv] = useState('prod');
   const [region, setRegion] = useState('westeurope');
   const [type, setType] = useState('vm');
   const [desc, setDesc] = useState('web-01');
   const [project, setProject] = useState('MyProject');
+  const [resourceGroup, setResourceGroup] = useState('rg-contoso-prod');
   const [resources, setResources] = useState([]);
 
   const resourceName = `${company}-${env}-${region}-${type}-${desc}`;
 
   const handleAddResource = () => {
-    setResources([...resources, resourceName]);
+    setResources([...resources, { name: resourceName, group: resourceGroup }]);
   };
 
   const handleExport = () => {
     const now = new Date();
     const timestamp = now.toLocaleString();
-    const username = navigator.userAgent; // optional: als Platzhalter für Benutzerkennung
+    const username = navigator.userAgent;
 
     const content = `Projekt: ${project}\nDatum: ${timestamp}\nErstellt von: ${username}\n\n` +
-      resources.map((r, i) => `#${i + 1}: ${r}`).join('\n');
+      resources.map((r, i) => `#${i + 1}: ${r.group} → ${r.name}`).join('\n');
 
     const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
     const link = document.createElement('a');
@@ -156,11 +157,25 @@ export default function AzureNamingTool() {
 
       <label className="block mb-2">
         Projektname:
+        <span className="text-xs text-gray-500 ml-2">
+          (contoso - Azure Files Projekt)
+        </span>
         <input
           type="text"
           value={project}
           onChange={(e) => setProject(e.target.value)}
           className="mt-1 block w-full border rounded-md p-2"
+        />
+      </label>
+
+      <label className="block mb-4">
+        Resource Group Name:
+        <input
+          type="text"
+          value={resourceGroup}
+          onChange={(e) => setResourceGroup(e.target.value)}
+          className="mt-1 block w-full border rounded-md p-2"
+          placeholder="z. B. rg-contoso-prod"
         />
       </label>
 
@@ -257,7 +272,7 @@ export default function AzureNamingTool() {
         <h2 className="font-semibold mb-2">Projektressourcen</h2>
         <ul className="list-disc list-inside text-sm text-gray-800">
           {resources.map((res, idx) => (
-            <li key={idx}>{res}</li>
+            <li key={idx}><strong>{res.group}</strong>: {res.name}</li>
           ))}
         </ul>
       </div>
