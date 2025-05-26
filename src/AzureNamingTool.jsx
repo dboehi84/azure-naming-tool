@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { RegionSelector } from './RegionSelector';
 import { ResourceTypeSelector } from './ResourceTypeSelector';
@@ -9,7 +8,39 @@ export default function AzureNamingTool() {
   const [region, setRegion] = useState('');
   const [type, setType] = useState('');
   const [desc, setDesc] = useState('web01');
+  const [resources, setResources] = useState([]);
+
   const resourceName = `${company}-${env}-${region}-${type}-${desc}`;
+
+  const addResource = () => {
+    setResources([...resources, resourceName]);
+  };
+
+  const exportResources = () => {
+    const csvContent = 'data:text/csv;charset=utf-8,' + resources.map(r => `"${r}"`).join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', 'azure_resources.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const importResources = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const lines = e.target.result.split('\n').map(l => l.trim()).filter(Boolean);
+      setResources(prev => [...prev, ...lines]);
+    };
+    reader.readAsText(file);
+  };
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(resourceName);
+  };
 
   return (
     <div className="p-4 max-w-xl mx-auto">
@@ -26,7 +57,30 @@ export default function AzureNamingTool() {
       <ResourceTypeSelector selectedType={type} setSelectedType={setType} />
       <label className="block mt-4 mb-2">Description:</label>
       <input className="border p-2 w-full mb-4" value={desc} onChange={e => setDesc(e.target.value)} />
-      <div className="mt-4 p-2 bg-gray-100 border rounded"><strong>Generated Name:</strong><br /><code>{resourceName}</code></div>
+
+      <div className="mt-4 p-2 bg-gray-100 border rounded">
+        <strong>Generated Name:</strong><br />
+        <code>{resourceName}</code>
+      </div>
+
+      <div className="mt-4 flex flex-wrap gap-2">
+        <button className="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600" onClick={addResource}>Ressource hinzufügen</button>
+        <button className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600" onClick={exportResources}>Export</button>
+        <label className="bg-yellow-500 text-white py-2 px-4 rounded hover:bg-yellow-600 cursor-pointer">
+          Import
+          <input type="file" accept=".csv" onChange={importResources} className="hidden" />
+        </label>
+        <button className="bg-gray-700 text-white py-2 px-4 rounded hover:bg-gray-800" onClick={copyToClipboard}>Copy</button>
+      </div>
+
+      <div className="mt-6">
+        <h2 className="font-semibold mb-2">Projektressourcen</h2>
+        <ul className="list-disc list-inside text-sm text-gray-800">
+          {resources.map((res, idx) => (
+            <li key={idx}>{res}</li>
+          ))}
+        </ul>
+      </div>
 
       <div className="mt-10 bg-white p-6 rounded-xl shadow border">
         <h2 className="text-lg font-semibold mb-2">Namenskonzept – Aufbau</h2>
