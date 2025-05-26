@@ -8,7 +8,6 @@ export default function AzureNamingTool() {
   const [region, setRegion] = useState('');
   const [type, setType] = useState('');
   const [desc, setDesc] = useState('web01');
-
   const resourceName = `${company}-${env}-${region}-${type}-${desc}`;
 
   return (
@@ -18,9 +17,7 @@ export default function AzureNamingTool() {
       <input className="border p-2 w-full mb-4" value={company} onChange={e => setCompany(e.target.value)} />
       <label className="block mb-2">Environment:</label>
       <select className="border p-2 w-full mb-4" value={env} onChange={e => setEnv(e.target.value)}>
-        <option value="dev">dev</option>
-        <option value="test">test</option>
-        <option value="prod">prod</option>
+        <option value="dev">dev</option><option value="test">test</option><option value="prod">prod</option>
       </select>
       <label className="block mb-2">Region:</label>
       <RegionSelector selectedRegion={region} setSelectedRegion={setRegion} />
@@ -28,10 +25,7 @@ export default function AzureNamingTool() {
       <ResourceTypeSelector selectedType={type} setSelectedType={setType} />
       <label className="block mt-4 mb-2">Description:</label>
       <input className="border p-2 w-full mb-4" value={desc} onChange={e => setDesc(e.target.value)} />
-      <div className="mt-4 p-2 bg-gray-100 border rounded">
-        <strong>Generated Name:</strong><br />
-        <code>{resourceName}</code>
-      </div>
+      <div className="mt-4 p-2 bg-gray-100 border rounded"><strong>Generated Name:</strong><br /><code>{resourceName}</code></div>
     </div>
   );
 }
