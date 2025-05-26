@@ -1,1 +1,7 @@
-{'Virtual Machine': 'vm', 'Resource Group': 'rg', 'Storage Account': 'st'}
+{
+  "Virtual Machine": "vm",
+  "Resource Group": "rg",
+  "Storage Account": "st",
+  "App Service": "appsvc",
+  "Azure SQL": "sql"
+}

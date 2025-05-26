@@ -1,1 +1,8 @@
-{'eastus': 'East US', 'westeurope': 'West Europe', 'switzerlandnorth': 'Switzerland North'}
+{
+  "eastus": "East US",
+  "eastus2": "East US 2",
+  "westeurope": "West Europe",
+  "northeurope": "North Europe",
+  "switzerlandnorth": "Switzerland North",
+  "switzerlandwest": "Switzerland West"
+}
