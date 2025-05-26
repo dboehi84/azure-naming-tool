@@ -3,6 +3,8 @@ import { RegionSelector } from './RegionSelector';
 import { ResourceTypeSelector } from './ResourceTypeSelector';
 
 export default function AzureNamingTool() {
+  const [project, setProject] = useState('Azure Projekt');
+  const [resourceGroupDesc, setResourceGroupDesc] = useState('core');
   const [company, setCompany] = useState('contoso');
   const [env, setEnv] = useState('prod');
   const [region, setRegion] = useState('');
@@ -10,18 +12,20 @@ export default function AzureNamingTool() {
   const [desc, setDesc] = useState('web01');
   const [resources, setResources] = useState([]);
 
+  const rgName = resourceGroupDesc;
   const resourceName = `${company}-${env}-${region}-${type}-${desc}`;
 
   const addResource = () => {
-    setResources([...resources, resourceName]);
+    setResources([...resources, { rg: rgName, name: resourceName }]);
   };
 
   const exportResources = () => {
-    const csvContent = 'data:text/csv;charset=utf-8,' + resources.map(r => `"${r}"`).join('\n');
-    const encodedUri = encodeURI(csvContent);
+    let csv = `Projekt: ${project}\n\nRessourcengruppe;Ressourcenname\n`;
+    csv += resources.map(r => `${r.rg};${r.name}`).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', 'azure_resources.csv');
+    link.href = URL.createObjectURL(blob);
+    link.setAttribute('download', `${project.replace(/\s+/g, '_')}_resources.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -32,8 +36,12 @@ export default function AzureNamingTool() {
     if (!file) return;
     const reader = new FileReader();
     reader.onload = (e) => {
-      const lines = e.target.result.split('\n').map(l => l.trim()).filter(Boolean);
-      setResources(prev => [...prev, ...lines]);
+      const lines = e.target.result.split('\n').filter(line => line.includes(';'));
+      const imported = lines.map(line => {
+        const [rg, name] = line.split(';');
+        return { rg: rg.trim(), name: name.trim() };
+      });
+      setResources(prev => [...prev, ...imported]);
     };
     reader.readAsText(file);
   };
@@ -43,23 +51,35 @@ export default function AzureNamingTool() {
   };
 
   return (
-    <div className="p-4 max-w-xl mx-auto">
+    <div className="p-4 max-w-3xl mx-auto">
       <h1 className="text-2xl font-bold mb-4">Azure Naming Tool</h1>
-      <label className="block mb-2">Company:</label>
+
+      <label className="block mb-2 font-semibold">Projekt Titel:</label>
+      <input className="border p-2 w-full mb-4" value={project} onChange={e => setProject(e.target.value)} />
+<label className="block mt-4 mb-2">Ressourcengruppe:</label>
+      <input className="border p-2 w-full mb-4" value={resourceGroupDesc} onChange={e => setResourceGroupDesc(e.target.value)} placeholder="Firmenkürzel-Environment-Region-rg" />
+
+      <label className="block mb-2">Firmenkürzel:</label>
       <input className="border p-2 w-full mb-4" value={company} onChange={e => setCompany(e.target.value)} />
-      <label className="block mb-2">Environment:</label>
+
+      <label className="block mb-2">Umgebung:</label>
       <select className="border p-2 w-full mb-4" value={env} onChange={e => setEnv(e.target.value)}>
         <option value="dev">dev</option><option value="test">test</option><option value="prod">prod</option>
       </select>
+
       <label className="block mb-2">Region:</label>
       <RegionSelector selectedRegion={region} setSelectedRegion={setRegion} />
+
+      
+      
+
       <label className="block mt-4 mb-2">Ressourcentyp:</label>
       <ResourceTypeSelector selectedType={type} setSelectedType={setType} />
-      <label className="block mt-4 mb-2">Description:</label>
+      <label className="block mt-4 mb-2">Beschreibung:</label>
       <input className="border p-2 w-full mb-4" value={desc} onChange={e => setDesc(e.target.value)} />
 
       <div className="mt-4 p-2 bg-gray-100 border rounded">
-        <strong>Generated Name:</strong><br />
+        <strong>Generierter Ressourcenname:</strong><br />
         <code>{resourceName}</code>
       </div>
 
@@ -75,11 +95,22 @@ export default function AzureNamingTool() {
 
       <div className="mt-6">
         <h2 className="font-semibold mb-2">Projektressourcen</h2>
-        <ul className="list-disc list-inside text-sm text-gray-800">
-          {resources.map((res, idx) => (
-            <li key={idx}>{res}</li>
-          ))}
-        </ul>
+        <table className="w-full text-sm border mt-2">
+          <thead>
+            <tr className="bg-gray-100 text-left">
+              <th className="p-2 border">Ressourcengruppe</th>
+              <th className="p-2 border">Ressourcenname</th>
+            </tr>
+          </thead>
+          <tbody>
+            {resources.map((res, idx) => (
+              <tr key={idx}>
+                <td className="p-2 border">{res.rg}</td>
+                <td className="p-2 border">{res.name}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
 
       <div className="mt-10 bg-white p-6 rounded-xl shadow border">
